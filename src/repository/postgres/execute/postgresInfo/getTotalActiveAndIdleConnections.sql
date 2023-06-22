@@ -1,0 +1,1 @@
+    SELECT	 state, count(*)  FROM pg_stat_activity group by state;

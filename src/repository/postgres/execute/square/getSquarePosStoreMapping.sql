@@ -1,0 +1,2 @@
+select sqp.customer_id, c.code, sqp.store_code, sqp.spos_location_id, sqp.spos_location_name, sqp.created, sqp.last_modified from m_square_pos_store_mapping sqp Inner Join e_customer c on c.id = sqp.customer_id
+where sqp.customer_id = ${customerId};

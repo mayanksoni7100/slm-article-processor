@@ -1,0 +1,1 @@
+SELECT pgdb.datname as databasename , pg_size_pretty(pg_database_size(pgdb.datname)) AS databasesize ,pgstat.state, pgstat.application_name as application FROM pg_database pgdb  left join pg_stat_activity pgstat on pgstat.datid = pgdb.oid WHERE datistemplate=false ORDER by databasesize DESC;

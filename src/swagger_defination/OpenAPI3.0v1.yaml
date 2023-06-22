@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: AIMS SaaS article processor Service API Documentation
+  description: Welcome to AIMS SaaS article processor Service Interface. These APIs to access AIMS SaaS article processor Service, which can get information about database health.
+  contact:
+    name: See more at SoluM
+    url: https://solumesl.com/
+  # termsOfService: http://swagger.io/terms/
+  version: 1.0.0
+
+  # description: Download API Documentation
+  # url: /common/download/openapiv2.yaml
+
+servers:
+- url: /square
+  description:
+# - url: /
+#   description: Development Base URL
+
+tags:
+  - name: About
+    description: article processor Service About Information
+  - name: Public
+    description: article processor Service Version Information
+  - name: Logs
+    description: article processor Logs
+
+################################# ABOUT ########################
+paths:
+
+################################### About ###################################
+  /api/v1/about:
+    get:
+      summary: About article processor Service Information
+      description: About article processor Service Information
+      tags:
+        - About
+      security:
+          - ApiKeyAuthTimestamp: []
+          - ApiKeyAuthhashKey: []
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aboutResponse'
+        204:
+          description: No Content
+          content: {}
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorizedResponse'
+        405:
+          description: Invalid Parameter
+          content: {}
+        500:
+          description: Internal Server Error
+          content: {}
+
+################################### Public ###################################
+  /api/v1/version:
+    get:
+      summary: article processor Service Version Information
+      description: article processor Service Version Information
+      tags:
+        - Public
+      security:
+          - ApiKeyAuthTimestamp: []
+          - ApiKeyAuthhashKey: []
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/versionResponse'
+        204:
+          description: No Content
+          content: {}
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorizedResponse'
+        405:
+          description: Invalid Parameter
+          content: {}
+        500:
+          description: Internal Server Error
+          content: {}
+
+################################# COMPONENTS ########################
+
+components:
+  securitySchemes:
+    ApiKeyAuthTimestamp:
+      type: apiKey
+      in: header
+      name: timestamp
+
+    ApiKeyAuthhashKey:
+      type: apiKey
+      in: header
+      name: hashKey
+
+  schemas:
+################################# UNAUTHORIZED SCHEMA ########################
+    unauthorizedResponse:
+     properties:
+       responseCode:
+         type: string
+         description: Invalid Token. Unauthorized Code
+         example: "401"
+       responseMessage:
+         type: string
+         description: Invalid Token. Unauthorized Message
+         example: Unauthorized
+
+################################### components/schemas/aboutResponse ###################################
+    aboutResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "AIMS SaaS article processor Service"
+        description:
+          type: string
+          example: "Welcome to AIMS SaaS article processor Service Interface"
+        instanceId:
+          type: string
+          example: "c53eccb1-fb23-40f1-ad3b-8644bfbec2ab"
+        version:
+          type: string
+          example: "1.0.0.1291"
+        hostname:
+          type: string
+          example: "article_processor_service-deployment-c6c5c89cd-bbbmc"
+        memorySizeLimit:
+          type: string
+          example: "6192.00 MB"
+        memorySizeLimitInBytes:
+          type: integer
+          example: 6492782592
+        timeInfo:
+          type: object
+          properties:
+            uptime:
+              type: string
+              example: "1 hr 32 mins 30 secs"
+            systemTime:
+              type: string
+              example: "2021-06-29 21:16:18"
+            timezone:
+              type: string
+              example: "GMT +09:00"
+            timezoneName:
+              type: string
+              example: "Asia/Seoul"
+        memoryInfo:
+          type: object
+          properties:
+            rss:
+              type: string
+              example: "2 GB"
+            heapTotal:
+              type: string
+              example: "1 GB"
+            heapUsed:
+              type: string
+              example: "328 MB"
+            external:
+              type: string
+              example: "22 MB"
+        responseCode:
+          type: string
+          example: "200"
+        responseMessage:
+          type: string
+          example: SUCCESS
+
+################################### components/schemas/versionResponse ###################################
+    versionResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "article processor Service"
+        version:
+          type: string
+          example: "1.0"
+        releaseDate:
+          type: string
+          example: "-.-"
+
+################################# COMMON SCHEMA ########################
+    commonResponse:
+     properties:
+       responseCode:
+         type: string
+         description: Response Code of Request
+         example: "200"
+       responseMessage:
+         type: string
+         description: Response Message of Request
+         example: SUCCESS
