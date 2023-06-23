@@ -68,4 +68,17 @@ function getPostgreSQLVersion_db() {
   });
 }
 
+commonController.prototype.divideArrayIntoEqualBatches = function(itemsToDivide, itemDivisionNumber){
+  return new Promise(resolve => {
+      const items = itemsToDivide;
+      const equalNumber = itemDivisionNumber;
+
+      const result = new Array(Math.ceil(items.length / equalNumber))
+      .fill()
+      .map(_ => items.splice(0, equalNumber));
+
+      resolve(result);
+  });
+}
+
 module.exports = commonController;

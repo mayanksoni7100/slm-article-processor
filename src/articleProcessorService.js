@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import requestIp from 'request-ip';
 import fs from 'fs';
+import { createNamespace } from 'cls-hooked';
 import errorHandler from './middlewares/errorHandler';
 import logResponse from './middlewares/responseHandler';
 import applicationLogger from './config/applicationLogger.js';
@@ -30,6 +31,10 @@ global.articleQueueOptions = {
     backoff: 2000 // static 2 sec delay between retry
 };
 global.squareCustomerCatalogFetchDetails = {};
+
+//create cls-hooked namespace for API service
+createNamespace('api_service_unique_context');
+
 /* Declaring App */
 var app = express();
 
@@ -67,6 +72,26 @@ app.use(cors({
 
 // Loading Environment Variables
 envVariables();
+
+/**environment name */
+global.environmentName = 'DEVELOPMENT';
+global.environmentNameWithBraces = '[Development]'
+if (process.env.APISERVICE_HOST.startsWith('stage00.')) {
+    global.environmentName = 'STAGE';
+    global.environmentNameWithBraces = '[Stage]'
+} else if (process.env.APISERVICE_HOST.startsWith('sqa.')) {
+    global.environmentName = 'DEVELOPMENT';
+    global.environmentNameWithBraces = '[Development]'
+} else if (process.env.APISERVICE_HOST.startsWith('eastus.')) {
+    global.environmentName = 'AMERICAS';
+    global.environmentNameWithBraces = '[Americas]'
+} else if (process.env.APISERVICE_HOST.startsWith('kr.')) {
+    global.environmentName = 'ASIA';
+    global.environmentNameWithBraces = '[Asia]'
+} else if (process.env.APISERVICE_HOST.startsWith('eu.')) {
+    global.environmentName = 'EUROPE';
+    global.environmentNameWithBraces = '[Europe]'
+}
 
 // Logger declaration
 applicationLogger(rTracer);
@@ -156,11 +181,11 @@ try {
     logger.error(error);
 }
 
-let yamlBaseUrl = `https://${process.env.SQUAREPOS_SERVICE_HOST}:${process.env.PORT}`;
+let yamlBaseUrl = `https://${process.env.ARTICLE_PROCESSOR_SERVICE_HOST}:${process.env.PORT}`;
 let swaggerHeaderLogo = '';
 let swaggerHeaderTabChangeJs = '';
 if (process.env.SUB_DOMAIN) {
-    yamlBaseUrl = `https://${process.env.SQUAREPOS_SERVICE_HOST}${process.env.SUB_DOMAIN ? `/${process.env.SUB_DOMAIN}` : ''}`;
+    yamlBaseUrl = `https://${process.env.ARTICLE_PROCESSOR_SERVICE_HOST}${process.env.SUB_DOMAIN ? `/${process.env.SUB_DOMAIN}` : ''}`;
     swaggerHeaderLogo = `/${process.env.SUB_DOMAIN}`;
     swaggerHeaderTabChangeJs = `${yamlBaseUrl}/manuals/js/swaggerTabChanges.js`;
 }else{

@@ -28,3 +28,7 @@ export const EVENTHUB_CONSUMER_STOP_SUCCESS = "Consumer successfully stopped"
 export const EVENTHUB_CONSUMER_ALREADY_STOPED = "Consumer already stopped"
 export const EVENTHUB_CONSUMER_VALIDATION_OPERATION_TYPE = "Invalid operation type"
 export const ARTICLE_PROCESS_EVENTHUB_CONSUMER_STOPPED_ON_APP_CLOSE = "Stopped:receiveEvents for Article Processor Client because of application close"
+
+/* No SQL Collections */
+export const NOSQL_CLCTN_L_PICKCEL_EVENT_LOGS = 'l_pickcel_event_logs'
+export const NOSQL_CLCTN_L_ARTICLE = 'l_article'

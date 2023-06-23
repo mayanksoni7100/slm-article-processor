@@ -19,6 +19,7 @@
     "@azure/event-hubs": "^5.6.0",
     "@azure/eventhubs-checkpointstore-blob": "^1.0.0",
     "@azure/storage-blob": "^12.1.1",
+    "@fast-csv/parse": "^4.3.6",
     "body-parser": "^1.20.2",
     "cls-hooked": "^4.2.2",
     "cls-rtracer": "^1.4.1",

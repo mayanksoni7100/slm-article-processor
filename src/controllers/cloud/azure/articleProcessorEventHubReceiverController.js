@@ -50,6 +50,14 @@ articleProcessorEventHubReceiverController.prototype.receiveEvents = function (c
                                 try {
                                     logger.info(`******************* [ARTICLE-PROCESS] - ${EVENTHUB_CONSUMER_EVENT_RECEIVED} ******************`);
                                     logger.info(`[ARTICLE-PROCESS] - '${JSON.stringify(event)}' ${EVENTHUB_CONSUMER_FROM_PARTITION}: '${context.partitionId}' ${EVENTHUB_CONSUMER_FROM_GROUP}: '${context.consumerGroup}'`);
+                                    global.processArticleProcessEventHub(
+                                        {
+                                            data: {
+                                                ...JSON.parse(JSON.stringify(event.body))
+                                            },
+                                            id: event.properties.msgId
+                                        }
+                                    )
                                 } catch (e) {
                                     logger.error(`******************* [ARTICLE-PROCESS] - ${EVENTHUB_CONSUMER_EVENT_RECEIVED} ******************`);
                                     logger.error(`[ARTICLE-PROCESS] - '${event}' ${EVENTHUB_CONSUMER_FROM_PARTITION}: '${context.partitionId}' ${EVENTHUB_CONSUMER_FROM_GROUP}: '${context.consumerGroup}'`);
