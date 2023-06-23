@@ -47,6 +47,7 @@
     "swagger-ui": "^3.49.0",
     "swagger-ui-express": "^4.6.3",
     "systeminformation": "^5.18.3",
+    "uuid": "^9.0.0",
     "winston": "^3.9.0",
     "winston-daily-rotate-file": "^4.7.1",
     "yamljs": "^0.3.0"

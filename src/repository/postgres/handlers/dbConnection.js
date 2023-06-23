@@ -1,4 +1,10 @@
 var pgp = require('pg-promise')();
+var { getNamespace } = require('cls-hooked');
+var fs = require('fs');
+const moment = require('moment');
+
+let connectionMap;
+let connectionObjMap = new Map();
 const typesBuiltins = {
     BOOL: 16,
     BYTEA: 17,
@@ -78,30 +84,149 @@ pgp.pg.defaults.query_timeout = process.env.RDBMS_QUERY_TIMEOUT;
 global.rdbms_info = null;
 
 export function dbConnection() {
-    return new Promise(resolve => {
-        try{
-            let ssl = null;
-            if(process.env.RDBMS_SSL){
-                ssl = process.env.RDBMS_SSL;
-            }
-            global.rdbms_info = pgp({
-                host: process.env.RDBMS_HOST,
-                port: process.env.RDBMS_PORT,
-                user: process.env.RDBMS_USERNAME,
-                password: process.env.RDBMS_PASSWORD,
-                database: process.env.RDBMS_DB_NAME,
-                ssl: ssl,
-                application_name: process.env.RDMBS_CONN_NAME,
-                max: process.env.RDBMS_MAX_POOL_SIZE,
-                min: process.env.RDBMS_MIN_POOL_SIZE,
-                idleTimeoutMillis: process.env.RDBMS_IDLE_CONN_TIME_OUT
-            });
-            resolve(true);
-        }catch(err){
-            logger.error(`PostgreSQL Database Connection Error`);
-            logger.error(err);
-            resolve(false);
+  return new Promise(async function (resolved, rejected) {
+    let tenants;
+  try {
+      if(process.env.TENANT_DB_SOURCE == 'FILE'){
+        tenants = JSON.parse(fs.readFileSync(`${process.cwd()}/assets/clientDbList.json`, 'utf8'));
+      }else{
+        if(global.rdbms_info == null){
+          let ssl = null;
+          if(process.env.RDBMS_SSL){
+              ssl = process.env.RDBMS_SSL;
+          }
+          global.rdbms_info = pgp({
+              host: process.env.RDBMS_HOST,
+              port: process.env.RDBMS_PORT,
+              user: process.env.RDBMS_USERNAME,
+              password: process.env.RDBMS_PASSWORD,
+              database: process.env.RDBMS_DB_NAME,
+              ssl: ssl,
+              application_name: process.env.RDMBS_CONN_NAME,
+              max: process.env.RDBMS_MAX_POOL_SIZE,
+              min: process.env.RDBMS_MIN_POOL_SIZE,
+              idleTimeoutMillis: process.env.RDBMS_IDLE_CONN_TIME_OUT
+          });
         }
-    });
+
+        /* loading all tenants information */
+        tenants = await global.rdbms_info.any(`SELECT * FROM e_customer`, '');
+      }
+    } catch (e) {
+      tenants = [];
+      logger.error('PostgreSQL Connection Error');
+      logger.error(e);  
+      resolved(false);
+      return;
+    }  
+    
+    connectionMap = tenants
+      .map(tenant => {
+        let tenantConf= createConnectionConfig(tenant);
+        let justDBConnection = {
+          host: tenantConf.host,
+          port: tenantConf.port,
+          user: tenantConf.user,
+          // password: tenantConf.password, //Password no need to consider for uniqueness
+          database: tenantConf.database,
+          // ssl: tenantConf.ssl
+        }
+        let tenantConfString= JSON.stringify(justDBConnection);
+          if(!connectionObjMap.has(tenantConfString)){
+            connectionObjMap.set(tenantConfString, pgp(tenantConf));
+            return {
+              [tenant.code]: connectionObjMap.get(tenantConfString)
+            }
+          }else{
+            return {
+              [tenant.code]: connectionObjMap.get(tenantConfString)
+            };
+          }
+      })
+      .reduce((prev, next) => {
+        return Object.assign({}, prev, next);
+      }, {});
+      global.customers = tenants.map(tenant => {
+        return {
+            id: tenant.id,
+            code: tenant.code,
+            name: tenant.name,
+            max_images: tenant.max_images,
+            batch_services: tenant.batch_services,
+            timezone: tenant.time_zone,
+            description: tenant.description,
+            register_date: tenant.register_date,
+            is_active: tenant.is_active,
+            stores: tenant.stores,
+            labels: tenant.labels,
+            usersLimit: tenant.users_limit,
+            articles: tenant.articles,
+            aimsManagerDevices: tenant.aims_manager,
+            lcdDevices: tenant.lcd_devices,
+            reportDetails: tenant.report_details,
+            packages: tenant.packages,
+            pickcelAccountId: tenant.pickcel_account_id,
+            expiry_date: tenant.expiry_date ? moment(tenant.expiry_date).format('YYYY-MM-DD') : tenant.expiry_date
+        };
+      });
+    resolved(true);
+  });    
 }
 
+/**
+   *  Create configuration object for the given tenant.
+   **/
+ function createConnectionConfig(tenant) {
+    let ssl = null;
+    if(process.env.RDBMS_SSL){
+        ssl = process.env.RDBMS_SSL;
+    }
+
+    if(tenant.rdbms_info.ssl == true){
+      ssl = true;
+    }else if(tenant.rdbms_info.ssl == false){
+      ssl = false;
+    }
+
+    return {
+        host: tenant.rdbms_info.host, //, '20.194.61.108', //
+        port: tenant.rdbms_info.port,
+        user: tenant.rdbms_info.username,
+        password: tenant.rdbms_info.password,
+        database: tenant.rdbms_info.databaseName,
+        ssl: ssl,
+        application_name: tenant.rdbms_info.connectionName,
+        max: tenant.rdbms_info.maxPoolSize,
+        min: tenant.rdbms_info.minPoolSize,
+        idleTimeoutMillis: tenant.rdbms_info.idleConnTimeout
+    }
+  }
+  
+  /**
+   * Get the connection information (knex instance) for the given tenant's customerCode.
+   */
+  export function getConnectionBycustomerCode(customerCode) {
+    if (connectionMap) {
+      return connectionMap[customerCode];
+    }
+  }
+  /**
+   * Get the connection information (knex instance) for current context. Here we have used a
+   * getNamespace from 'continuation-local-storage'. This will let us get / set any
+   * information and binds the information to current request context.
+   */
+   export function getConnection() {
+    let conn;
+    try {
+      let nameSpace = getNamespace('api_service_unique_context');
+      conn = nameSpace.get('connection');
+      if (!conn) {
+        logger.info('Connection is not set for any tenant database so returning global rdbms obj.');
+        conn = global.rdbms_info;
+      }      
+    } catch (error) {
+      logger.info('Connection is not set for any tenant database so returning global rdbms obj.');
+      conn = global.rdbms_info;
+    }
+    return conn;
+  }
