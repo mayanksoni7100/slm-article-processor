@@ -1,1 +1,0 @@
-delete from e_square_pos where customer_id = (select id from e_customer where code = ${customerCode} limit 1);

@@ -1,2 +1,0 @@
-insert into m_square_pos_store_mapping(customer_id, store_code, spos_location_id, spos_location_name, created, last_modified)
- values(${customerId}, ${storeCode}, ${locationId}, ${locationName}, now(), now()) ON CONFLICT(customer_id,store_code) DO UPDATE set spos_location_id = ${locationId}, spos_location_name = ${locationName}, last_modified = now();

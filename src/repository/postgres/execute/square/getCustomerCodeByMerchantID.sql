@@ -1,2 +1,0 @@
-select sqp.customer_id, c.code, sqp.merchant_id, sqp.authorization_code, sqp.application_id, sqp.application_secret, sqp.access_token, sqp.refresh_token from e_square_pos sqp Inner Join e_customer c on c.id = sqp.customer_id
-where sqp.merchant_id = ${merchantId};

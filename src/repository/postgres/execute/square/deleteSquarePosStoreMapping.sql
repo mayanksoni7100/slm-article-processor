@@ -1,1 +1,0 @@
-delete from m_square_pos_store_mapping where customer_id = {customerId} {whereCondition};
